@@ -4,7 +4,6 @@ import { UsersService } from "@/modules/users/users.service";
 const userService = new UsersService();
 
 export async function POST(request: Request) {
-            console.log('Created user:', request);
 
     const body = await request.json();
     const user = await userService.createUser({
@@ -12,7 +11,9 @@ export async function POST(request: Request) {
         email: body.email,
         password: body.password,
     });
-
-    console.log(user)
-    return NextResponse.json(user);
+    
+    return NextResponse.json({
+        message: "Usuario criado com sucesso.",
+        user: { id: user.id, name: user.name, email: user.email }
+    }, { status: 201 });
 }

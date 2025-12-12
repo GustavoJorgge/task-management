@@ -1,0 +1,4 @@
+{
+  "prisma.useLanguageServer": true,
+  "prisma.languageServerPath": "./node_modules/prisma/build/index.js"
+}
