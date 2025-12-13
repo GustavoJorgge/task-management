@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
 import { UsersService } from "@/modules/users/users.service";
 import { validatePassword } from "@/utils/password";
+import { hashPassword } from "@/utils/auth";
 
+
+interface RegisterBody{
+name: string;
+email: string;
+password: string;
+}
 
 export async function POST(request: Request) {
     const userService = new UsersService();
-    const body = await request.json();
+    const body:RegisterBody = await request.json();
 
     const passwordValidator = validatePassword(body.password);
     if (!passwordValidator.isValid) {
@@ -16,15 +23,19 @@ export async function POST(request: Request) {
     }
 
     try{
+        const hashedPassword = await hashPassword(body.password);
+
         const user = await userService.createUser({    
             name: body.name,
             email: body.email,
-            password: body.password,
+            password: hashedPassword,
         });
+
         return NextResponse.json({
             message: "Usuario criado com sucesso.",
             user: { id: user.id, name: user.name, email: user.email }
         }, { status: 201 });
+        
     } catch (error) {
         console.error("Error creating user:", error);
         return NextResponse.json({
