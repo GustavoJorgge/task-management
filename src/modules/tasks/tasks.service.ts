@@ -18,4 +18,8 @@ export class TasksService {
     await this.repository.deleteTask(taskId);
     return true;
   }
+
+  async getTaskById(taskId: number) {
+    return this.repository.getTaskById(taskId);
+  }
 }

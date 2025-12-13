@@ -20,6 +20,13 @@ export class TasksRepository {
             where: { id }
         });
         return task;
-    }   
+    }
+
+    async getTaskById(id: number): Promise<Tasks | null> {
+        const task = await prisma.tasks.findUnique({
+            where: { id }
+        });
+        return task;
+    }
 
 }
