@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyJwt } from "./jwtToken";
+import { verifyJwt } from "../utils/jwtToken";
 
 export function authMiddleware(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
