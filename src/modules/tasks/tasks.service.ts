@@ -9,4 +9,9 @@ export class TasksService{
         return task;
     }
 
+    async deleteTask(id:number){
+        const task = await this.repository.deleteTask(id);
+        return task;
+    }
+
 }
