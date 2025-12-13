@@ -1,80 +1,73 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TasksService } from "@/modules/tasks/tasks.service";
+import { requireAuth } from "@/utils/requireAuth";
 
-export async function POST(request: Request) {
-    const tasksService = new TasksService();
-    const body = await request.json();
+export async function POST(req: NextRequest) {
+  const auth = requireAuth(req);
 
-    if (!body.title) {
-        return NextResponse.json(
-            { message: "O campo 'title' é obrigatório." }, 
-            { status: 400 }
-        );
-    }
+  if ("error" in auth) {
+    return auth.error;
+  }
 
-    if (!body.description) {
-        return NextResponse.json(
-            { message: "O campo 'description' é obrigatório." }, 
-            { status: 400 }
-        );
-    }
+  const { userId } = auth;
 
-    try {
-        const task = await tasksService.createTask({
-            title: body.title,
-            description: body.description,
-            status: body.status || "PENDING",
-            userId: body.userId,
-        });
-        return NextResponse.json({
-            task,
-        }, { status: 201 });
-    } catch (error) {
-        console.error("Error creating task:", error);
-        return NextResponse.json({
-            message: "Erro ao criar tarefa.",
-        }, { status: 500 });
-    }
+  const body = await req.json();
+  const tasksService = new TasksService();
+
+  const task = await tasksService.createTask({
+    title: body.title,
+    description: body.description,
+    status: body.status ?? "PENDING",
+    userId,
+  });
+
+  return NextResponse.json({ task }, { status: 201 });
 }
 
 export async function DELETE(request: NextRequest) {
-    const tasksService = new TasksService();
-    
-    const id = request.nextUrl.searchParams.get('id');
+  const auth = requireAuth(request);
 
-    if (!id) {
-        return NextResponse.json(
-            { message: "O ID da tarefa é obrigatório para a exclusão." },
-            { status: 400 }
-        );
-    }
-    
-    const taskId = parseInt(id);
-    if (isNaN(taskId)) {
-         return NextResponse.json(
-            { message: "O ID da tarefa deve ser um número válido." },
-            { status: 400 }
-        );
+  if ("error" in auth){
+    return auth.error;
+  }
+
+  const id = request.nextUrl.searchParams.get("id");
+  if (!id) {
+    return NextResponse.json(
+      { message: "ID da tarefa é obrigatório." },
+      { status: 400 }
+    );
+  }
+
+  const taskId = Number(id);
+  if (isNaN(taskId)) {
+    return NextResponse.json(
+      { message: "ID da tarefa inválido." },
+      { status: 400 }
+    );
+  }
+
+  const tasksService = new TasksService();
+
+  try {
+    const deleted = await tasksService.deleteTask(taskId);
+
+    if (!deleted) {
+      return NextResponse.json(
+        { message: "Tarefa não encontrada ou não pertence ao usuário." },
+        { status: 404 }
+      );
     }
 
-    try {        
-        const deleted = await tasksService.deleteTask(taskId); 
-        
-        if (!deleted) {
-             return NextResponse.json(
-                { message: `Tarefa com ID ${taskId} não encontrada.` },
-                { status: 404 }
-            );
-        }
-
-        return NextResponse.json({ 
-            message: `Tarefa com ID ${taskId} deletada com sucesso.` 
-        }, { status: 200 });
-        
-    } catch (error) {
-        console.error("Error:", error);
-        return NextResponse.json({
-            message: "Erro interno ao deletar tarefa.",
-        }, { status: 500 });
-    }
+    return NextResponse.json(
+      { message: "Tarefa deletada com sucesso." },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    return NextResponse.json(
+      { message: "Erro interno ao deletar tarefa." },
+      { status: 500 }
+    );
+  }
 }
