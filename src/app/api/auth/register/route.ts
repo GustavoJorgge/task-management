@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { UsersService } from "@/modules/users/users.service";
 import { validatePassword } from "@/utils/password";
-import { hashPassword } from "@/utils/auth";
+import { hashPassword } from "@/utils/hashPassword";
 
 
 interface RegisterBody{
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
             message: "Usuario criado com sucesso.",
             user: { id: user.id, name: user.name, email: user.email }
         }, { status: 201 });
-        
+
     } catch (error) {
         console.error("Error creating user:", error);
         return NextResponse.json({
