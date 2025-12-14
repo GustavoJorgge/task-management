@@ -1,4 +1,7 @@
-import { PasswordValidationResult } from './password.validator';
+export interface PasswordValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
 
 const MIN_LENGTH = 8;
 

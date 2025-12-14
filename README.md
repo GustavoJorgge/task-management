@@ -218,7 +218,6 @@ npm run dev
 ## Testes
 
 Processo ainda em desenvolvimento!
----
 
 ## Próximas Etapas
 
