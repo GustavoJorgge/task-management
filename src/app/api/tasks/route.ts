@@ -24,12 +24,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ task }, { status: 201 });
 }
 
-export async function GET(req: NextRequest) {
-    const auth = requireAuth(req);
-    if ("error" in auth) return auth.error;
 
-    const { userId } = auth;
-    const tasksService = new TasksService();
-    const tasks = await tasksService.getTasksByUserId(userId);
-    return NextResponse.json({ tasks });
+export async function GET(req: NextRequest) {
+  const auth = requireAuth(req);
+  if ("error" in auth) return auth.error;
+
+  const { userId } = auth;
+
+  const tasksService = new TasksService();
+  const tasks = await tasksService.getTasksByUserId(userId);
+
+  return NextResponse.json({ tasks }, { status: 200 });
 }
