@@ -29,4 +29,11 @@ export class TasksRepository {
         return task;
     }
 
+    async getTasksByUserId(userId: number): Promise<Tasks[]> {
+        const tasks = await prisma.tasks.findMany({
+            where: { userId }
+        });
+        return tasks;
+    }
+
 }

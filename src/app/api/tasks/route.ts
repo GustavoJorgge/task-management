@@ -24,68 +24,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ task }, { status: 201 });
 }
 
-export async function DELETE(request: NextRequest) {
-    const auth = requireAuth(request);
-    if ("error" in auth){
-        return auth.error;
-    }
+export async function GET(req: NextRequest) {
+    const auth = requireAuth(req);
+    if ("error" in auth) return auth.error;
 
-    const id = request.nextUrl.searchParams.get("id");
-    if (!id) {
-        return NextResponse.json(
-        { message: "ID da tarefa é obrigatório." },
-        { status: 400 }
-        );
-    }
-
-    const taskId = Number(id);
+    const { userId } = auth;
     const tasksService = new TasksService();
-
-    try {
-        const deleted = await tasksService.deleteTask(taskId);
-
-        if (!deleted) {
-        return NextResponse.json(
-            { message: "Tarefa não encontrada ou não pertence ao usuário." },
-            { status: 404 }
-        );
-        }
-
-        return NextResponse.json(
-        { message: "Tarefa deletada com sucesso." },
-        { status: 200 }
-        );
-    } catch (error) {
-        console.error("Error deleting task:", error);
-        return NextResponse.json(
-        { message: "Erro interno ao deletar tarefa." },
-        { status: 500 }
-        );
-    }
-}
-
-export async function GET(request: NextRequest) {
-    const auth = requireAuth(request);
-    if ("error" in auth){
-        return auth.error;
-    }
-    const id = request.nextUrl.searchParams.get("id");
-    const taskId = Number(id);
-    if (isNaN(taskId)) {
-        return NextResponse.json(
-        { message: "ID da tarefa inválido." },
-        { status: 400 }
-        );
-    }
-    const tasksService = new TasksService();
-    const task = await tasksService.getTaskById(taskId);
-
-    if (!task) {
-        return NextResponse.json(
-        { message: "Tarefa não encontrada." },
-        { status: 404 }
-        );
-    }
-
-    return NextResponse.json({ task }, { status: 200 });
+    const tasks = await tasksService.getTasksByUserId(userId);
+    return NextResponse.json({ tasks });
 }
