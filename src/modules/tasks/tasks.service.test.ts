@@ -36,4 +36,24 @@ describe("TasksService", () => {
     expect(result).toEqual(mockTask);
     expect(repositoryMock.createTask).toHaveBeenCalledOnce();
   });
+
+    it("deve deletar uma task", async () => {
+    const mockTask: Tasks = {
+      id: 1,
+      title: "Task",
+      description: "Desc",
+      status: "PENDING",
+      userId: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    repositoryMock.deleteTask.mockResolvedValue(mockTask);
+
+    const result = await service.deleteTask(1);
+
+    expect(result).toEqual(mockTask);
+    expect(repositoryMock.deleteTask).toHaveBeenCalledWith(1);
+  });
+  
 });
