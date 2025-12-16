@@ -27,14 +27,10 @@ export class TasksService {
     return this.repository.getTasksByUserId(userId);
   }
   //Atualiza Task
-  async updateTask(
-    taskId: number,
-    data: Partial<UpdateTaskDTO>
-  ) {
-    const existingTask = await this.repository.getTaskById(taskId);
-    if (!existingTask) {
-      return null;
-    }
-    return this.repository.updateTask(taskId, data);
+  async updateTask(id: number, data: UpdateTaskDTO) {
+    return this.repository.updateTask(id, {
+      ...data,
+      updatedAt: new Date(),
+    });
   }
 }
