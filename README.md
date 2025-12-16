@@ -13,14 +13,15 @@ O projeto foca em **autenticação segura**, **controle de acesso por usuário**
 * **Prisma ORM**
 * **MySQL**
 * **JWT (JSON Web Token)**
-* **bcrypt** para hash de senha
-* **Docker** (setup de banco)
+* **bcrypt** para hash de senhas
+* **Zod** para validação de dados
+* **Docker** (setup do banco de dados)
 
 ---
 
 ## Arquitetura do Projeto
 
-O projeto segue uma separação clara de responsabilidades:
+O projeto segue uma separação clara entre **rotas**, **serviços**, **repositórios** e **validações**, evitando lógica de negócio diretamente nas rotas.
 
 ```
 src/
@@ -30,26 +31,27 @@ src/
  │       │   ├─ login/route.ts
  │       │   └─ register/route.ts
  │       └─ tasks/
- │           ├─ route.ts          # Listar e criar tarefas
- │           └─ [id]/route.ts     # Buscar e deletar tarefa por ID
+ │           ├─ route.ts          # Listar e criar tasks
+ │           └─ [id]/route.ts     # Buscar, atualizar e deletar task por ID
  │
  ├─ modules/
  │   ├─ infra/
  │   │   └─ prisma.ts
  │   ├─ users/
- │       ├─ users.repository.ts
- │       ├─ users.service.ts
- │       └─ users.types.ts
+ │   │   ├─ users.repository.ts
+ │   │   ├─ users.service.ts
+ │   │   ├─ users.schema.ts
+ │   │   └─ users.types.ts
  │   └─ tasks/
- │       ├─ tasks.service.ts
  │       ├─ tasks.repository.ts
+ │       ├─ tasks.service.ts
+ │       ├─ tasks.schema.ts
  │       └─ tasks.types.ts
  │
  └─ utils/
-     ├─ hashPassword.ts
-     ├─ jwtToken.ts
-     ├─ password.ts
-     └─ requireAuth.ts
+     ├─ auth.ts            # hash e compare de senha
+     ├─ jwtToken.ts        # geração e validação do JWT
+     └─ requireAuth.ts     # middleware/helper de autenticação
 ```
 
 ---
@@ -62,7 +64,11 @@ A autenticação é feita via **JWT**, utilizando o header:
 Authorization: Bearer <token>
 ```
 
-O token é validado por um helper (`requireAuth`) reutilizado em todas as rotas protegidas.
+O token é validado por um helper reutilizável (`requireAuth`), garantindo que:
+
+* O token seja válido
+* O usuário esteja autenticado
+* O `userId` seja extraído do token (e nunca recebido via body ou query)
 
 ---
 
@@ -86,10 +92,10 @@ POST /api/auth/register
 }
 ```
 
-**Regras:**
+**Validações:**
 
 * Email único
-* Senha forte (mínimo de 8 caracteres)
+* Senha forte (mínimo 8 caracteres, letra maiúscula, minúscula, número e caractere especial)
 
 ---
 
@@ -125,17 +131,19 @@ POST /api/auth/login
 
 ### Tasks (Rotas protegidas)
 
-#### Listar Tasks do usuário
+Todas as rotas abaixo exigem autenticação via JWT.
+
+#### Listar tasks do usuário autenticado
 
 ```
 GET /api/tasks
 ```
 
-Retorna apenas tasks pertencentes ao usuário autenticado.
+Retorna apenas as tasks pertencentes ao usuário autenticado.
 
 ---
 
-#### Cria task
+#### Criar task
 
 ```
 POST /api/tasks
@@ -145,8 +153,8 @@ POST /api/tasks
 
 ```json
 {
-  "title": "Criar API.js",
-  "description": "App Router e JWT",
+  "title": "Criar API",
+  "description": "App Router com JWT",
   "status": "PENDING"
 }
 ```
@@ -161,7 +169,25 @@ GET /api/tasks/{id}
 
 ---
 
-#### Deletar tarefa
+#### Atualizar task
+
+```
+PUT /api/tasks/{id}
+```
+
+Campos opcionais:
+
+```json
+{
+  "title": "Nova task",
+  "description": "Descrição atualizada",
+  "status": "COMPLETED"
+}
+```
+
+---
+
+#### Deletar task
 
 ```
 DELETE /api/tasks/{id}
@@ -169,12 +195,13 @@ DELETE /api/tasks/{id}
 
 ---
 
-## Seguranças
+## Segurança
 
-* Hash de senha com **bcrypt**
+* Senhas armazenadas com **bcrypt**
 * JWT assinado com segredo via `.env`
-* Usuário só acessa suas próprias tarefas
-* Nenhum `userId` é recebido via request (sempre via token)
+* Usuário só pode acessar/manipular suas próprias tasks
+* `userId` nunca é recebido via request
+* Validação de dados feita com **Zod**
 
 ---
 
@@ -184,30 +211,32 @@ Crie um arquivo `.env` baseado no `.env.example`:
 
 ```
 DATABASE_URL="mysql://user:password@localhost:3306/database"
-JWT_SECRET="senhaJWT"
+JWT_SECRET="sua_chave_secreta"
 ```
 
 ---
 
-## Como executar o projeto
+## ▶️ Como Executar o Projeto
 
-### 1. Instalar dependencias
+### 1. Instalar dependências
+
 ```
 npm install
 ```
+
 ### 2. Subir o banco de dados
 
 ```
 docker-compose up -d
 ```
 
-### 3. Rodar migrations
+### 3. Rodar as migrations
 
 ```
 npx prisma migrate dev
 ```
 
-### 4. Iniciar o projeto
+### 4. Iniciar a aplicação
 
 ```
 npm run dev
@@ -217,10 +246,13 @@ npm run dev
 
 ## Testes
 
-Processo ainda em desenvolvimento!
+Ainda não implementados. Estrutura preparada para inclusão futura.
+
+---
 
 ## Próximas Etapas
 
-* Filtro por status
+* Filtro de tasks por status
 * Testes automatizados
-* Swagger / OpenAPI
+* Documentação com Swagger / OpenAPI
+* Front-end
