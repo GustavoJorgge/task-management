@@ -1,5 +1,5 @@
 import { TasksRepository } from "./tasks.repository";
-import { CreateTaskDTO } from "./tasks.types";
+import { CreateTaskDTO, UpdateTaskDTO } from "./tasks.types";
 
 export class TasksService {
   private repository = new TasksRepository();
@@ -25,5 +25,16 @@ export class TasksService {
   //Busca Tasks por Usuário
   async getTasksByUserId(userId: number) {
     return this.repository.getTasksByUserId(userId);
+  }
+  //Atualiza Task
+  async updateTask(
+    taskId: number,
+    data: Partial<UpdateTaskDTO>
+  ) {
+    const existingTask = await this.repository.getTaskById(taskId);
+    if (!existingTask) {
+      return null;
+    }
+    return this.repository.updateTask(taskId, data);
   }
 }

@@ -64,3 +64,45 @@ export async function DELETE(
     { status: 200 }
   );
 }
+
+export async function PUT(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const auth = requireAuth(req);
+  if ("error" in auth) return auth.error;
+
+  const { userId } = auth;
+
+  const { id } = await context.params;
+  const taskId = Number(id);
+
+  if (isNaN(taskId)) {
+    return NextResponse.json(
+      { message: "ID da task inválido." },
+      { status: 400 }
+    );
+  }
+
+  const body = await req.json();
+  const tasksService = new TasksService();
+  const existingTask = await tasksService.getTaskById(taskId);
+
+  if (!existingTask || existingTask.userId !== userId) {
+    return NextResponse.json(
+      { message: "Task não encontrada ou acesso negado." },
+      { status: 404 }
+    );
+  }
+
+  const updatedTask = await tasksService.updateTask(taskId, {
+    title: body.title,
+    description: body.description,
+    status: body.status,
+  });
+
+  return NextResponse.json(
+    { task: updatedTask },
+    { status: 200 }
+  );
+}

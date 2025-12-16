@@ -1,5 +1,5 @@
-import { Tasks } from "@prisma/client";
-import { CreateTaskDTO } from "./tasks.types";
+import { Prisma, Tasks } from "@prisma/client";
+import { CreateTaskDTO, UpdateTaskDTO } from "./tasks.types";
 import { prisma } from "../infra/prisma";
 
 
@@ -35,5 +35,20 @@ export class TasksRepository {
         });
         return tasks;
     }
+   
+    async updateTask(
+        id: number,
+        data: UpdateTaskDTO
+    ): Promise<Tasks> {
+        const updateData: Prisma.TasksUpdateInput = {};
 
+        if (data.title !== undefined) updateData.title = data.title;
+        if (data.description !== undefined) updateData.description = data.description;
+        if (data.status !== undefined) updateData.status = data.status;
+
+        return prisma.tasks.update({
+        where: { id },
+        data: updateData,
+        });
+    }
 }
